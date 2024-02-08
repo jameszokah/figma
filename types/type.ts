@@ -119,7 +119,7 @@ export type ShapesMenuProps = {
 };
 
 export type Presence = {
-  cursor?: { x: number; y: number };
+  cursor?: { x: number; y: number } | null;
   cursorColor?: string;
   message?: string;
 };
