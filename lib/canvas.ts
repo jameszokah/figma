@@ -23,7 +23,7 @@ export const initializeFabric = ({
   canvasRef: React.MutableRefObject<HTMLCanvasElement | null>;
 }) => {
   // get canvas element
-  const canvasElement = document.getElementById("canvas");
+  const canvasElement = document.getElementById("canvas") as HTMLCanvasElement | null;
 
   // create fabric canvas
   const canvas = new fabric.Canvas(canvasRef.current, {
@@ -392,6 +392,7 @@ export const handleResize = ({ canvas }: { canvas: fabric.Canvas | null }) => {
     width: canvasElement.clientWidth,
     height: canvasElement.clientHeight,
   });
+
 };
 
 // zoom canvas on mouse scroll

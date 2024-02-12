@@ -10,12 +10,12 @@ type CursorProps = {
 
 const Cursor = ({color, x, y, message}: CursorProps) => {
   return (
-    <div className="pointer-events-none absolute top-0 left-0"
+    <div className="pointer-events-none z-[9999] absolute top-0 left-0"
         style={{
             transform: `translate(${x}px, ${y}px)`
         }}
     >
-        <CursorSVG color={color} />
+        <CursorSVG  color={color} />
 
         {/* message */}
         {message && (

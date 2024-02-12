@@ -8,6 +8,14 @@ export enum CursorMode {
   Reaction,
 }
 
+export type UserMeta = {
+  info: {
+    name: string;
+    color: [string, string];
+    avatar?: string;
+  };
+};
+
 export type CursorState =
   | {
       mode: CursorMode.Hidden;

@@ -1,13 +1,13 @@
-'use client'
+ 'use client'
 import LiveCursors from '@/components/cursor/liveCursors'
-import { useMyPresence, useOthers } from '@/liveblocks.config'
-import { CursorMode, CursorState, Presence, MyPresence, Reaction } from '@/types/type'
-import React, { useCallback, useEffect, useState } from 'react'
-import Cursor from './cursor/cursor'
+import { useBroadcastEvent, useEventListener, useMyPresence, useOthers } from '@/liveblocks.config'
+import { CursorMode, CursorState, Presence, MyPresence, Reaction, ReactionEvent, CustomFabricObject } from '@/types/type'
+import React, { Suspense, forwardRef, useCallback, useEffect, useRef, useState } from 'react'
 import CursorChat from './cursor/cursorChat'
 import ReactionSelector from './reaction/reactionButton'
 import FlyingReaction from './reaction/flyingReaction'
 import useInterval from '@/hooks/useInterval'
+import AppCanvas from '@/app/appCanvas'
 
 type Cursor = {
     x: number,
@@ -15,7 +15,11 @@ type Cursor = {
 
 }
 
-const Live = () => {
+type LiveProp = {
+    canvasRef: React.MutableRefObject<HTMLCanvasElement> | null
+}
+
+const Live = forwardRef<HTMLCanvasElement>( function Live({}, ref) {
 
     const [cursorState, setCursorState] = useState<CursorState>({
         mode: CursorMode.Hidden
@@ -25,13 +29,33 @@ const Live = () => {
     const others = useOthers()
     const [{cursor}, updateMyPresence] = useMyPresence() as MyPresence
 
+    const broadCast = useBroadcastEvent();
+
 
 
     useInterval(() => {
         if(cursorState.mode === CursorMode.Reaction && cursorState.isPressed && cursor) {
             setReaction((reactions) => [...reactions, {value: cursorState.reaction, timestamp: Date.now(), point: {x: cursor.x, y: cursor.y}}])
+        
+
+        broadCast({value: cursorState.reaction, x: cursor.x, y: cursor.y, timestamp: Date.now()})
         }
-    }, 40)
+    }, 1000)
+
+    useInterval(() => {
+        setReaction((reactions) => {
+            return reactions.filter((reaction) => {
+                return reaction.timestamp > Date.now() - 4000
+            })
+        })
+    }, 1000)
+
+    useEventListener((eventData) => {
+        const event = eventData.event as ReactionEvent
+
+        setReaction((reactions) => [...reactions, {value: event.value, timestamp: Date.now(), point: {x: event.x, y: event.y}}])
+        
+    })
 
     const setReactions = useCallback((reaction: string) => {
         setCursorState({mode: CursorMode.Reaction, reaction, isPressed: false})
@@ -110,8 +134,8 @@ const Live = () => {
         onPointerLeave={onPointerLeave}
         onPointerUp={onPointerUp}
         onPointerDown={onPointerDown}
-        className='w-full h-screen flex justify-center items-center'
-        style={{height: '100vh', width: '100vw', position: 'relative'}}
+        className='w-[64%]'
+        // style={{height: '100vh', width: '100vw', position: 'relative'}}
     >
         {
             reaction.map((r, index) => (
@@ -144,9 +168,11 @@ const Live = () => {
             )
         }
         <LiveCursors others={others} />
-        <h1 className="text-white text-5xl">My Figma Clone </h1>
+        <Suspense fallback={<div>Loading.....</div>}>
+            <AppCanvas ref={ref} />
+        </Suspense>
     </div>
   )
 }
-
+)
 export default Live
